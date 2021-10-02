@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { addToDb, getStoredCart } from '../../utilities/fakedb';
 import Cart from '../Cart/Cart';
 import Product from '../Product/Product';
 import './Shop.css';
@@ -19,9 +20,27 @@ const Shop = () => {
         });
     }, []);
 
+    useEffect ( () => {
+        if (products.length){
+            const savedCart = getStoredCart();
+            const storedCart = [];
+            for (const key in savedCart){
+            const addedProduct = products.find(product => product.key ===key);
+            if(addedProduct){
+                const quantity = savedCart[key];
+                addedProduct.quantity = quantity;
+                storedCart.push(addedProduct);
+            }
+        }
+        setCart(storedCart);
+        }
+    }, [products])
+
     const handleAddToCart = (product) => {
         const newCart = [...cart, product];
         setCart(newCart);
+        // save to local storage (for now)
+        addToDb(product.key);
     }
 
     const handleSearch = event => {
@@ -35,21 +54,21 @@ const Shop = () => {
     return (
        <div>
             <div className="search-container">
-            <input type="text"
-             placeholder="Search Products"
-             onChange={handleSearch}
-             />
-        </div>
-        <div className="shop-container">
-            <div className="product-container">
-                {
-                    displayProducts.map(product => <Product key={product.key} product={product} handleAddToCart={handleAddToCart}></Product>)
-                }
+                <input type="text"
+                placeholder="Search Products"
+                onChange={handleSearch}
+                />
             </div>
-            <div className="cart-container">
-               <Cart cart={cart}></Cart>
+            <div className="shop-container">
+                <div className="product-container">
+                    {
+                        displayProducts.map(product => <Product key={product.key} product={product} handleAddToCart={handleAddToCart}></Product>)
+                    }
+                </div>
+                <div className="cart-container">
+                    <Cart cart={cart}></Cart>
+                </div>
             </div>
-        </div>
        </div>
     );
 };
